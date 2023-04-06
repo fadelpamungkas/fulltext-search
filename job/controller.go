@@ -20,14 +20,27 @@ func NewJobController(svc JobService) jobController {
 	return jobController{Service: svc}
 }
 
-// UserCreate method will process request to insert new 'Job' data and
+// Check if the content has both title and description
+func hasRequiredContent(fl validator.FieldLevel) bool {
+	content := fl.Parent().Interface().(domain.JobContentWithValidation).JobContent
+	hasEnglish := content.Title_english != "" && content.Description_english != ""
+	hasGreek := content.Title_greek != "" && content.Description_greek != ""
+
+	return hasEnglish || hasGreek
+}
+
+// JobCreate method will process request to insert new 'Job' data and
 // response with the created data back to the job (if no error found)
 func (h *jobController) JobCreateController(c *gin.Context) {
 
 	var validate = validator.New()
+	_ = validate.RegisterValidation("has_required_content", func(fl validator.FieldLevel) bool {
+		return hasRequiredContent(fl)
+	})
+
 	// get request data from context that containing 'Job' model information
 	// and bind it to a variable matching the requested data
-	var u domain.JobContent
+	var u domain.JobContentWithValidation
 
 	// if request data binding error than return 400/ bad request
 	if err := c.ShouldBindJSON(&u); err != nil {
@@ -55,7 +68,7 @@ func (h *jobController) JobCreateController(c *gin.Context) {
 	}
 
 	// send data to service layer to further process (create record)
-	job, err := h.Service.Create(u)
+	job, err := h.Service.Create(u.JobContent)
 
 	// if error occur while trying to save the data, return 500/ internal server error
 	if err != nil {
@@ -70,7 +83,7 @@ func (h *jobController) JobCreateController(c *gin.Context) {
 		return
 	}
 
-	//  if no error found, send 200/ status ok as well as the 'UserResponse' data
+	//  if no error found, send 200/ status ok as well as the 'JobResponse' data
 	c.JSON(
 		http.StatusOK,
 		job,
@@ -80,7 +93,7 @@ func (h *jobController) JobCreateController(c *gin.Context) {
 // JobGetsController is method to process request to get all job data
 func (h *jobController) JobGetsController(c *gin.Context) {
 	q := c.Query("query")
-	users, err := h.Service.Gets(q)
+	jobs, err := h.Service.Gets(q)
 	if err != nil {
 		c.AbortWithStatusJSON(
 			http.StatusInternalServerError,
@@ -91,10 +104,10 @@ func (h *jobController) JobGetsController(c *gin.Context) {
 		return
 	}
 
-	// no error occur then send status ok and users data
+	// no error occur then send status ok and jobs data
 	c.JSON(
 		http.StatusOK,
-		users,
+		jobs,
 	)
 }
 
@@ -117,9 +130,15 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 		// exit process
 		return
 	}
+
+	var validate = validator.New()
+	_ = validate.RegisterValidation("has_required_content", func(fl validator.FieldLevel) bool {
+		return hasRequiredContent(fl)
+	})
+
 	// get request data from context that containing 'Job' model information
 	// and bind it to a variable matching the requested data
-	var u domain.JobContent
+	var u domain.JobContentWithValidation
 
 	// if request data binding error than return 400/ bad request
 	if err := c.ShouldBindJSON(&u); err != nil {
@@ -134,7 +153,6 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 		return
 	}
 
-	var validate = validator.New()
 	//use validator library to validate required fields
 	if err := validate.Struct(&u); err != nil {
 		c.JSON(
@@ -148,7 +166,7 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 	}
 
 	// send data to service layer to further process (update record)
-	job, err := h.Service.Update(uid, u)
+	job, err := h.Service.Update(uid, u.JobContent)
 
 	// if error occur while trying to save the data, return 500/ internal server error
 	if err != nil {
@@ -163,7 +181,7 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 		return
 	}
 
-	//  if no error found, send 200/ status ok as well as the 'UserResponse' data
+	//  if no error found, send 200/ status ok as well as the 'JobResponse' data
 	c.JSON(
 		http.StatusOK,
 		job,
@@ -206,7 +224,7 @@ func (h *jobController) JobDeleteController(c *gin.Context) {
 		return
 	}
 
-	//  if no error found, send 200/ status ok as well as the 'UserResponse' data
+	//  if no error found, send 200/ status ok as well as the 'JobResponse' data
 	c.JSON(
 		http.StatusOK,
 		job,

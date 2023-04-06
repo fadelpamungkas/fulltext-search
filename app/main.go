@@ -40,6 +40,7 @@ func Run() {
 	dbSearch, err := config.NewDBSearchIndex(config.DatabaseSearchConfig{
 		Host:   "http://127.0.0.1:7700",
 		APIKey: "LQ2DYe1qqAWh9Kvihp7Lar86TTf6GLXuc-fpWbhVzGA",
+		Index:  "job",
 	})
 
 	// log for error if error occur while connecting to the database
@@ -55,7 +56,7 @@ func Run() {
 	service := job.NewJobService(database, databaseSearch)
 	controller := job.NewJobController(service)
 
-  job.Routes(r, controller)
+	job.Routes(r, controller)
 
 	// run the server
 	log.Fatalf("%v", r.Run(":8000"))
