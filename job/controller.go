@@ -23,10 +23,10 @@ func NewJobController(svc JobService) jobController {
 // Check if the content has both title and description
 func hasRequiredContent(fl validator.FieldLevel) bool {
 	content := fl.Parent().Interface().(domain.JobContentWithValidation).JobContent
-	hasEnglish := content.Title_english != "" && content.Description_english != ""
-	hasGreek := content.Title_greek != "" && content.Description_greek != ""
+	hasTitle := content.Title_english != "" && content.Title_greek != ""
+	hasDescription := content.Description_english != "" && content.Description_greek != ""
 
-	return hasEnglish || hasGreek
+	return hasTitle || hasDescription
 }
 
 // JobCreate method will process request to insert new 'Job' data and
