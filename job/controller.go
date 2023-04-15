@@ -20,30 +20,18 @@ func NewJobController(svc JobService) jobController {
 	return jobController{Service: svc}
 }
 
-// Check if the content has both title and description
-func hasRequiredContent(fl validator.FieldLevel) bool {
-	content := fl.Parent().Interface().(domain.JobContentWithValidation).JobContent
-	hasTitle := content.Title_english != "" && content.Title_greek != ""
-	hasDescription := content.Description_english != "" && content.Description_greek != ""
-
-	return hasTitle || hasDescription
-}
-
 // JobCreate method will process request to insert new 'Job' data and
 // response with the created data back to the job (if no error found)
 func (h *jobController) JobCreateController(c *gin.Context) {
 
 	var validate = validator.New()
-	_ = validate.RegisterValidation("has_required_content", func(fl validator.FieldLevel) bool {
-		return hasRequiredContent(fl)
-	})
 
 	// get request data from context that containing 'Job' model information
 	// and bind it to a variable matching the requested data
-	var u domain.JobContentWithValidation
+	var j domain.JobContent
 
 	// if request data binding error than return 400/ bad request
-	if err := c.ShouldBindJSON(&u); err != nil {
+	if err := c.ShouldBindJSON(&j); err != nil {
 		c.JSON(
 			http.StatusBadRequest,
 			gin.H{
@@ -56,7 +44,7 @@ func (h *jobController) JobCreateController(c *gin.Context) {
 	}
 
 	//use validator library to validate required fields
-	if err := validate.Struct(&u); err != nil {
+	if err := validate.Struct(&j); err != nil {
 		c.JSON(
 			http.StatusBadRequest,
 			gin.H{
@@ -68,7 +56,7 @@ func (h *jobController) JobCreateController(c *gin.Context) {
 	}
 
 	// send data to service layer to further process (create record)
-	job, err := h.Service.Create(u.JobContent)
+	job, err := h.Service.Create(j)
 
 	// if error occur while trying to save the data, return 500/ internal server error
 	if err != nil {
@@ -79,13 +67,12 @@ func (h *jobController) JobCreateController(c *gin.Context) {
 			},
 		)
 
-		// exit process
 		return
 	}
 
-	//  if no error found, send 200/ status ok as well as the 'JobResponse' data
+	//  if no error found, send 201/ status ok as well as the 'JobResponse' data
 	c.JSON(
-		http.StatusOK,
+		http.StatusCreated,
 		job,
 	)
 }
@@ -93,6 +80,18 @@ func (h *jobController) JobCreateController(c *gin.Context) {
 // JobGetsController is method to process request to get all job data
 func (h *jobController) JobGetsController(c *gin.Context) {
 	q := c.Query("query")
+
+	// check if query is empty or "" then return empty array
+	if q == "" {
+		c.JSON(
+			http.StatusBadRequest,
+			gin.H{
+				"error": fmt.Sprintf("bad request: no query found\n"),
+			},
+		)
+		return
+	}
+
 	jobs, err := h.Service.Gets(q)
 	if err != nil {
 		c.AbortWithStatusJSON(
@@ -132,16 +131,13 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 	}
 
 	var validate = validator.New()
-	_ = validate.RegisterValidation("has_required_content", func(fl validator.FieldLevel) bool {
-		return hasRequiredContent(fl)
-	})
 
 	// get request data from context that containing 'Job' model information
 	// and bind it to a variable matching the requested data
-	var u domain.JobContentWithValidation
+	var j domain.JobContent
 
 	// if request data binding error than return 400/ bad request
-	if err := c.ShouldBindJSON(&u); err != nil {
+	if err := c.ShouldBindJSON(&j); err != nil {
 		c.JSON(
 			http.StatusBadRequest,
 			gin.H{
@@ -154,7 +150,7 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 	}
 
 	//use validator library to validate required fields
-	if err := validate.Struct(&u); err != nil {
+	if err := validate.Struct(&j); err != nil {
 		c.JSON(
 			http.StatusBadRequest,
 			gin.H{
@@ -166,7 +162,7 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 	}
 
 	// send data to service layer to further process (update record)
-	job, err := h.Service.Update(uid, u.JobContent)
+	job, err := h.Service.Update(uid, j)
 
 	// if error occur while trying to save the data, return 500/ internal server error
 	if err != nil {
@@ -177,7 +173,6 @@ func (h *jobController) JobUpdateController(c *gin.Context) {
 			},
 		)
 
-		// exit process
 		return
 	}
 

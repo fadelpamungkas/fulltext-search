@@ -32,11 +32,10 @@ func NewDatabaseSearch(index *meilisearch.Index) DatabaseSearch {
 
 func (client DatabaseSearch) Create(job domain.Job) (*meilisearch.TaskInfo, error) {
 	entry := map[string]interface{}{
-		"id":                  job.ID,
-		"title_english":       job.Title_english,
-		"title_greek":         job.Title_greek,
-		"description_english": job.Description_english,
-		"description_greek":   job.Description_greek,
+		"id":            job.ID,
+		"title_greek":   job.Title_greek,
+		"title_english": job.Title_english,
+		"keywords":      job.Keywords,
 	}
 
 	task, err := client.Index.AddDocuments(entry)
@@ -51,9 +50,9 @@ func (client DatabaseSearch) Create(job domain.Job) (*meilisearch.TaskInfo, erro
 func (pool Database) Create(job domain.JobContent) (*domain.Job, error) {
 	// sql for inserting new record
 	q := `
-  INSERT INTO job (title_english,title_greek,description_english,description_greek)
-  VALUES ($1,$2,$3,$4) 
-  RETURNING id,title_english,title_greek,description_english,description_greek
+  INSERT INTO job (title_greek, title_english, keywords)
+  VALUES ($1,$2,$3) 
+  RETURNING id, title_greek, title_english, keywords;
   `
 
 	// execute query to insert new record. it takes 'job' variable as its input
@@ -61,10 +60,9 @@ func (pool Database) Create(job domain.JobContent) (*domain.Job, error) {
 	row := pool.DB.QueryRow(
 		context.Background(),
 		q,
-		job.Title_english,
 		job.Title_greek,
-		job.Description_english,
-		job.Description_greek,
+		job.Title_english,
+		job.Keywords,
 	)
 
 	// create 'j' variable as 'Job' type to contain scanned data value from 'row' variable
@@ -73,10 +71,9 @@ func (pool Database) Create(job domain.JobContent) (*domain.Job, error) {
 	// scan 'row' variable and place the value to 'j' variable as well as check for error
 	err := row.Scan(
 		&j.ID,
-		&j.Title_english,
 		&j.Title_greek,
-		&j.Description_english,
-		&j.Description_greek,
+		&j.Title_english,
+		&j.Keywords,
 	)
 
 	// return nil and error if scan operation is fail/ error found
@@ -91,7 +88,7 @@ func (pool Database) Create(job domain.JobContent) (*domain.Job, error) {
 func (client DatabaseSearch) Search(query string) ([]domain.JobId, error) {
 	res, err := client.Index.Search(query,
 		&meilisearch.SearchRequest{
-			Limit:                10,
+			// Limit:                10,
 			AttributesToRetrieve: []string{"id"},
 		})
 	if err != nil {
@@ -146,10 +143,9 @@ func (pool Database) Gets(results []domain.JobId) ([]*domain.Job, error) {
 			// scan rows and place it in 'j' (job) container
 			err := rows.Scan(
 				&j.ID,
-				&j.Title_english,
 				&j.Title_greek,
-				&j.Description_english,
-				&j.Description_greek,
+				&j.Title_english,
+				&j.Keywords,
 			)
 
 			// return nil and error if scan operation fail
@@ -169,11 +165,10 @@ func (pool Database) Gets(results []domain.JobId) ([]*domain.Job, error) {
 func (client DatabaseSearch) Update(id int, job domain.JobContent) (*meilisearch.TaskInfo, error) {
 	documents := []map[string]interface{}{
 		{
-			"id":                  id,
-			"title_english":       job.Title_english,
-			"title_greek":         job.Title_greek,
-			"description_english": job.Description_english,
-			"description_greek":   job.Description_greek,
+			"id":            id,
+			"title_greek":   job.Title_greek,
+			"title_english": job.Title_english,
+			"keywords":      job.Keywords,
 		},
 	}
 	return client.Index.UpdateDocuments(documents)
@@ -184,22 +179,20 @@ func (pool Database) Update(id int, job domain.JobContent) (*domain.Job, error) 
 	// prepare update query
 	q := `
   UPDATE job SET 
-  title_english = $2,
-  title_greek = $3,
-  description_english = $4,
-  description_greek = $5
+  title_greek = $2,
+  title_english = $3,
+  keywords = $4
   WHERE id = $1
-  RETURNING id, title_english, title_greek, description_english, description_greek;
+  RETURNING id, title_greek, title_english, keywords;
   `
 	// execute update query
 	row := pool.DB.QueryRow(
 		context.Background(),
 		q,
 		id,
-		job.Title_english,
 		job.Title_greek,
-		job.Description_english,
-		job.Description_greek,
+		job.Title_english,
+		job.Keywords,
 	)
 
 	// create container variable for Job
@@ -208,10 +201,9 @@ func (pool Database) Update(id int, job domain.JobContent) (*domain.Job, error) 
 	// scan data and place it on 'j' variable we create before and check for error
 	if err := row.Scan(
 		&j.ID,
-		&j.Title_english,
 		&j.Title_greek,
-		&j.Description_english,
-		&j.Description_greek,
+		&j.Title_english,
+		&j.Keywords,
 	); err != nil {
 		return nil, err
 	}
@@ -232,7 +224,7 @@ func (pool Database) Delete(id int) (*domain.Job, error) {
 	q := `
   DELETE FROM job 
   WHERE id = $1 
-  RETURNING id,title_english,title_greek,description_english,description_greek;
+  RETURNING id, title_greek, title_english, keywords;
   `
 
 	// execute query
@@ -244,10 +236,9 @@ func (pool Database) Delete(id int) (*domain.Job, error) {
 	// if error occur, return the error
 	if err := row.Scan(
 		&j.ID,
-		&j.Title_english,
 		&j.Title_greek,
-		&j.Description_english,
-		&j.Description_greek,
+		&j.Title_english,
+		&j.Keywords,
 	); err != nil {
 		return nil, err
 	}

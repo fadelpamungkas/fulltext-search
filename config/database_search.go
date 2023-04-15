@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/meilisearch/meilisearch-go"
@@ -33,21 +33,8 @@ func NewDBSearchIndex(config DatabaseSearchConfig) (*meilisearch.Index, error) {
 				return nil, createErr
 			}
 
-			// Wait for the index creation task to complete
-			taskResp, waitErr := client.GetTask(task.TaskUID)
-			if waitErr != nil {
-				return nil, waitErr
-			}
+			log.Println("Meilisearch index created: ", task.IndexUID)
 
-			if taskResp.Status != "succeeded" {
-				return nil, fmt.Errorf("index creation task failed with status: %s", taskResp.Status)
-			}
-
-			// Fetch the created index
-			index, err = client.GetIndex(config.Index)
-			if err != nil {
-				return nil, err
-			}
 		} else {
 			return nil, err
 		}

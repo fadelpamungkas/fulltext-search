@@ -1,6 +1,8 @@
 package job
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func Routes(r *gin.Engine, controller jobController) {
 	// prepare router
@@ -13,4 +15,7 @@ func Routes(r *gin.Engine, controller jobController) {
 	job.PUT("/:id", controller.JobUpdateController)
 	job.DELETE("/:id", controller.JobDeleteController)
 	job.GET("/", controller.JobGetsController)
+
+	// Serve Swagger UI files
+	r.Static("/swagger/", "public/dist/")
 }
