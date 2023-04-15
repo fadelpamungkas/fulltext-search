@@ -1,0 +1,169 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Job Search API
+  description: API for managing job listings
+servers:
+  - url: /v1
+    description: API server URL
+paths:
+  /job:
+    post:
+      summary: Add a new job listing
+      description: Creates a new job listing using the provided information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Job'
+      responses:
+        '201':
+          description: The new job listing has been created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '400':
+          description: Invalid input provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: Retrieve all job listings
+      description: Returns a list containing all job listings
+      parameters:
+        - name: query
+          in: query
+          description: The query text to search
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of job listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobResponse'
+        '400':
+          description: Invalid input provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /job/{id}:
+    put:
+      summary: Modify an existing job listing
+      description: Updates the specified job listing with the given information
+      parameters:
+        - name: id
+          in: path
+          description: The ID of the job listing to update
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Job'
+      responses:
+        '200':
+          description: The job listing has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '400':
+          description: Invalid input provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Remove an existing job listing
+      description: Deletes the specified job listing
+      parameters:
+        - name: id
+          in: path
+          description: The ID of the job listing to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '400':
+          description: Invalid input provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Job:
+      type: object
+      properties:
+        title_greek:
+          type: string
+        title_english:
+          type: string
+        keywords:
+          type: string
+      required:
+        - title_greek
+    JobResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        title_greek:
+          type: string
+        title_english:
+          type: string
+        keywords:
+          type: string
+      required:
+        - id
+        - title_greek
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - message
+        - code
