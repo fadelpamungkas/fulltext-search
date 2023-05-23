@@ -16,19 +16,17 @@ CREATE SEQUENCE IF NOT EXISTS job_id_seq;
 -- Table Definition
 CREATE TABLE "public"."job" (
     "id" int4 NOT NULL DEFAULT nextval('job_id_seq'::regclass),
-    "title_greek" text NOT NULL,
-    "title_english" text,
-    "keywords" text,
+    "title" text NOT NULL,
     PRIMARY KEY ("id")
 );
 
-INSERT INTO "public"."job" ("id", "title_greek", "title_english", "keywords") VALUES
-(2, 'Διαχειριστής Βάσης Δεδομένων', '', 'Oracle, SQL, PL/SQL, Παρακολούθηση και βελτιστοποίηση επιδόσεων'),
-(4, 'Διαχειριστής Συστημάτων', '', ''),
-(5, 'Προγραμματιστής Κινητών Εφαρμογών', 'Mobile App Developer', 'iOS, Swift, Android, Kotlin, Flutter, Firebase, Mobile App Development'),
-(6, 'Σύμβουλος Επιχειρήσεων', 'Business Consultant', ''),
-(7, 'Σχεδιαστής Γραφικών', '', 'Adobe Creative Suite, Illustration, Branding, User Experience, Visual Design'),
-(8, 'Διαχειριστής Συστημάτων', 'Systems Administrator', 'Linux, Virtualization, Networking, Security'),
-(9, 'Συντηρητής Μηχανημάτων', 'Machine Maintenance Technician', 'Mechanical Maintenance, Troubleshooting, Repair, Preventive Maintenance, Equipment Calibration'),
-(10, 'Συγγραφέας Περιεχομένου', '', ''),
-(11, 'Συντηρητής Κτιρίων', '', 'Electrical Systems, Plumbing, HVAC, Carpentry, Painting');
+INSERT INTO "public"."job" ("id", "title") VALUES
+(1, 'Software Engineer'),
+(2, 'Database Administrator'),
+(4, 'Systems Administrator'),
+(5, 'Mobile App Developer'),
+(6, 'Business Consultant'),
+(7, 'Graphic Designer'),
+(8, 'Systems Administrator'),
+(9, 'Machine Maintenance Technician'),
+(10, 'Building Maintenance Technician');
