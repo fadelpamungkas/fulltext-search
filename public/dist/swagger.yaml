@@ -137,28 +137,20 @@ components:
     Job:
       type: object
       properties:
-        title_greek:
-          type: string
-        title_english:
-          type: string
-        keywords:
+        title:
           type: string
       required:
-        - title_greek
+        - title
     JobResponse:
       type: object
       properties:
         id:
           type: integer
-        title_greek:
-          type: string
-        title_english:
-          type: string
-        keywords:
+        title:
           type: string
       required:
         - id
-        - title_greek
+        - title
     Error:
       type: object
       properties:
