@@ -9,7 +9,7 @@ First, navigate to the directory where you want to clone the repository. Then ru
 
 
 ```bash
-git clone https://github.com/koufopoulosf/search.git
+git clone https://github.com/fadelpamungkas/fulltext-search.git
 cd search
 ```
 
